@@ -1,0 +1,31 @@
+{% extends 'base.html'%}
+
+{% block content %}
+<div class= "container mt-5">
+    <h1 class = "mb-4 text-primary"> Registro - Sala Telecom</h1>
+
+    <form method="POST" class="p-4 border rounded bg-light shadow-sm">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label for="observation" class= "form-label">Observações:</label>
+            <input type="text" id="obervation" name="obervation" class="form-control" placeholder="Descreva a obervação">
+        </div>
+        <div class = "mb-3">
+            <label for="temperature"class="form-label">Temperatura (ºC):</label>
+            <input type="number" name="temperature" id="temperature" class="form-control" step="0.1" min="-10" max="50"required>
+        </div>
+
+        <div class="mb-3">
+            <label for="limpeza" class="form-label">Estado de Limpeza:</label>
+            <select name="limpeza" id="limpeza"class="form-select"required>
+                <option value="L">Limpo</option>
+                <option value="M">Mais ou Menos</option>
+                <option value="S">Sujo</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+        <a href="{% url 'home' %}"class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

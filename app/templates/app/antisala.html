@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - Antisala</title>
+</head>
+<body>
+    <h1>Registro - Antisala</h1>
+    <form method="POST">
+        {% csrf_token %}
+        <label for="observation">Observação:</label>
+        <input type="text" id="observation" name="observation" required><br>
+
+        <label for="temperature">Temperatura:</label>
+        <input type="number" step="0.01" id="temperature" name="temperature" required><br>
+
+        <label for="limpeza">Estado de Limpeza:</label>
+        <select id="limpeza" name="limpeza" required>
+            <option value="L">Limpo</option>
+            <option value="M">Mais ou Menos</option>
+            <option value="S">Sujo</option>
+        </select><br>
+
+        <button type="submit">Salvar</button>
+    </form>
+</body>
+</html>

@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Datacenter{% endblock %}
+
+{% block content %}
+<main class="container mt-4 text-center">
+    <h2 class="mb-4">Selecione uma Sala</h2>
+    <div class = "row row-cols-1 row-cols-sm-2 row-cols-md4 g-3">
+        <div class="col">
+            <button class="btn btn-primary w-100" onclick="location.href='{% url 'registrar_sala' 'antisala' %}'">Anti Sala</button>
+        </div>
+        <div class = "col">
+            <button class="btn btn-primary w-100" onclick="location.href='{% url 'registrar_sala' 'salacofre' %}'">Sala Cofre</button>
+        </div>
+        <div class="col">
+            <button class="btn btn-primary w-100" onclick="location.href='{% url 'registrar_sala' 'salatelecom' %}'">Sala Telecom</button>
+        </div>
+        <div class="col">
+            <button class="btn btn-primary w-100" onclick="location.href='{% url 'registrar_sala' 'salaenergia' %}'">Sala Energia</button>
+        </div>
+    </div>
+
+</main>
+{% endblock %}
