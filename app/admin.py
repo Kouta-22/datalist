@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import AntiSala, SalaCofre, SalaTelecom, SalaEnergia,RegistroGeral
+from django.contrib.auth.decorators import login_required
 
 
 @admin.register(AntiSala)
