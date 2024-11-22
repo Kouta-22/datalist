@@ -1,103 +1,82 @@
 from django.db import models
+from django.contrib.auth.models import User
 
-# Create your models here.
-from django.db import models
 
-# Create your models here.
-
+# Modelo para RegistroGeral
 class RegistroGeral(models.Model):
     TIPO_SALA_CHOICES = [
-        ('ANTISALA','Antisala'),
-        ('COFRE','SalaCofre'),
-        ('TELECOM','SalaTelecom'),
-        ('ENERGIA','SalaEnergia')
+        ('ANTISALA', 'Antisala'),
+        ('COFRE', 'SalaCofre'),
+        ('TELECOM', 'SalaTelecom'),
+        ('ENERGIA', 'SalaEnergia'),
     ]
     tipo_sala = models.CharField(max_length=10, choices=TIPO_SALA_CHOICES)
-    observacao = models.CharField(max_length=250, null=True,blank=True)
-    temperatura = models.DecimalField(max_digits=5,decimal_places=2)
+    observacao = models.CharField(max_length=250, null=True, blank=True)
+    temperatura = models.DecimalField(max_digits=5, decimal_places=2)
     data_criacao = models.DateField(auto_now_add=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.tipo_sala} - {self.data_criacao.strftime('%d/%m/%Y %H:%M')}"
+        return f"{self.tipo_sala} - {self.data_criacao.strftime('%d/%m/%Y')}"
 
-
-
-
-# Classe Base para todas as salas
+# Classe Base para salas
 class SalaBase(models.Model):
     LIMPEZA_CHOICES = [
-        ('L', 'Limpo'),         # 'L' representa "Limpo"
-        ('M', 'Mais ou Menos'), # 'M' representa "Mais ou Menos"
-        ('S', 'Sujo'),          # 'S' representa "Sujo"
+        ('L', 'Limpo'),
+        ('M', 'Mais ou Menos'),
+        ('S', 'Sujo'),
     ]
- 
-    observation = models.CharField(max_length=250, null=True, blank=True)  # Observação opcional
-    created_at = models.DateTimeField(auto_now_add=True)  # Data de criação
-    temperature = models.DecimalField(max_digits=5, decimal_places=2)  # Exemplo: 23.45°C
-    limpeza = models.CharField(  # Campo de limpeza com opções pré-definidas
+    observation = models.CharField(max_length=250, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    temperature = models.DecimalField(max_digits=5, decimal_places=2)
+    limpeza = models.CharField(
         max_length=1,
         choices=LIMPEZA_CHOICES,
-        default='L',  # Valor padrão: "Limpo"
+        default='L',
     )
+    image = models.ImageField(upload_to='uploads/salas/',null=True, blank=True)
+
+
+    # Este atributo será sobrescrito nas subclasses
+    TIPO_SALA = None
 
     class Meta:
-        abstract = True  # Define que esta classe é abstrata e não será migrada
+        abstract = True
+
+    def save(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().save(*args, **kwargs)
+
+        if self.TIPO_SALA:
+            RegistroGeral.objects.update_or_create(
+                tipo_sala=self.TIPO_SALA,
+                observacao=self.observation,
+                temperatura=self.temperature,
+                data_criacao=self.created_at.date(),
+                defaults={'user': user}
+            )
 
 # Modelos específicos para cada sala
 class AntiSala(SalaBase):
+    TIPO_SALA = 'ANTISALA'
+
     def __str__(self):
         return "Antisala"
-    
-    def save(self, *args, **kwargs):
-        super().save(*args,**kwargs)
-
-        RegistroGeral.objects.create(
-            tipo_sala='ANTISALA',
-            observacao=self.observation,
-            temperatura = self.temperature,
-            data_criacao=self.created_at.date()
-        )
 
 class SalaCofre(SalaBase):
+    TIPO_SALA = 'COFRE'
+
     def __str__(self):
         return "SalaCofre"
-    
-    def save(self, *args, **kwargs):
-        super().save(*args,**kwargs)
-
-        RegistroGeral.objects.create(
-            tipo_sala='COFRE',
-            observacao=self.observation,
-            temperatura = self.temperature,
-            data_criacao=self.created_at.date()
-        )
-    
 
 class SalaTelecom(SalaBase):
+    TIPO_SALA = 'TELECOM'
+
     def __str__(self):
         return "SalaTelecom"
 
-    def save(self, *args, **kwargs):
-        super().save(*args,**kwargs)
-
-        RegistroGeral.objects.create(
-            tipo_sala='TELECOM',
-            observacao=self.observation,
-            temperatura = self.temperature,
-            data_criacao=self.created_at.date()
-        )
-    
-
 class SalaEnergia(SalaBase):
+    TIPO_SALA = 'ENERGIA'
+
     def __str__(self):
         return "SalaEnergia"
-
-    def save(self, *args, **kwargs):
-        super().save(*args,**kwargs)
-
-        RegistroGeral.objects.create(
-            tipo_sala='ENERGIA',
-            observacao=self.observation,
-            temperatura = self.temperature,
-            data_criacao=self.created_at.date()
-        )

@@ -3,6 +3,7 @@ from .models import AntiSala, SalaCofre, SalaEnergia, SalaTelecom
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db.utils import DataError
 
 def login_view(request):
     if request.method == 'POST':
@@ -35,20 +36,25 @@ def registrar_sala(request, tipo_sala):
         observation = request.POST.get('observation')
         temperature = request.POST.get('temperature')
         limpeza = request.POST.get('limpeza')
+        image = request.FILES.get('image')
         
         # Bloco try para tratar erros de criação
         try:
             if tipo_sala == 'antisala':
-                AntiSala.objects.create(observation=observation, temperature=temperature, limpeza=limpeza)
+                AntiSala.objects.create(observation=observation, temperature=temperature, limpeza=limpeza, image=image).save(user=request.user)
             elif tipo_sala == 'salacofre':
-                SalaCofre.objects.create(observation=observation, temperature=temperature, limpeza=limpeza)
+                SalaCofre.objects.create(observation=observation, temperature=temperature, limpeza=limpeza,image=image).save(user=request.user)
             elif tipo_sala == 'salaenergia':
-                SalaEnergia.objects.create(observation=observation, temperature=temperature, limpeza=limpeza)
+                SalaEnergia.objects.create(observation=observation, temperature=temperature, limpeza=limpeza,image=image).save(user=request.user)
             elif tipo_sala == 'salatelecom':
-                SalaTelecom.objects.create(observation=observation, temperature=temperature, limpeza=limpeza)
+                SalaTelecom.objects.create(observation=observation, temperature=temperature, limpeza=limpeza,image=image).save(user=request.user)
             else:
                 messages.error(request, "Tipo de sala inválido.")
                 return redirect('home')
+            
+        except DataError:
+            messages.error(request, "O texto na observação é muito longo. Reduza o tamanho e tente novamente.")
+            return redirect(request.path_info)
 
         except Exception as e:
             messages.error(request, f"Ocorreu um erro ao salvar os dados: {e}")
