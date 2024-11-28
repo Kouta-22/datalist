@@ -19,6 +19,21 @@ class RegistroGeral(models.Model):
     def __str__(self):
         return f"{self.tipo_sala} - {self.data_criacao.strftime('%d/%m/%Y')}"
 
+    def delete(self, *args, **kwargs):
+        """
+        Override do método delete para sincronizar exclusão com as tabelas de salas.
+        """
+        if self.tipo_sala == 'ANTISALA':
+            AntiSala.objects.filter(created_at__date=self.data_criacao).delete()
+        elif self.tipo_sala == 'COFRE':
+            SalaCofre.objects.filter(created_at__date=self.data_criacao).delete()
+        elif self.tipo_sala == 'TELECOM':
+            SalaTelecom.objects.filter(created_at__date=self.data_criacao).delete()
+        elif self.tipo_sala == 'ENERGIA':
+            SalaEnergia.objects.filter(created_at__date=self.data_criacao).delete()
+        super().delete(*args, **kwargs)
+
+
 # Classe Base para salas
 class SalaBase(models.Model):
     LIMPEZA_CHOICES = [
@@ -34,27 +49,31 @@ class SalaBase(models.Model):
         choices=LIMPEZA_CHOICES,
         default='L',
     )
-    image = models.ImageField(upload_to='uploads/salas/',null=True, blank=True)
+    image = models.ImageField(upload_to='uploads/salas/', null=True, blank=True)
 
-
-    # Este atributo será sobrescrito nas subclasses
     TIPO_SALA = None
 
     class Meta:
         abstract = True
 
     def save(self, *args, **kwargs):
+        """
+        Override do método save para criar ou atualizar os registros na tabela mestre RegistroGeral.
+        """
         user = kwargs.pop('user', None)
         super().save(*args, **kwargs)
 
         if self.TIPO_SALA:
             RegistroGeral.objects.update_or_create(
                 tipo_sala=self.TIPO_SALA,
-                observacao=self.observation,
-                temperatura=self.temperature,
                 data_criacao=self.created_at.date(),
-                defaults={'user': user}
+                defaults={
+                    'observacao': self.observation,
+                    'temperatura': self.temperature,
+                    'user': user,
+                }
             )
+
 
 # Modelos específicos para cada sala
 class AntiSala(SalaBase):
@@ -63,17 +82,20 @@ class AntiSala(SalaBase):
     def __str__(self):
         return "Antisala"
 
+
 class SalaCofre(SalaBase):
     TIPO_SALA = 'COFRE'
 
     def __str__(self):
         return "SalaCofre"
 
+
 class SalaTelecom(SalaBase):
     TIPO_SALA = 'TELECOM'
 
     def __str__(self):
         return "SalaTelecom"
+
 
 class SalaEnergia(SalaBase):
     TIPO_SALA = 'ENERGIA'
