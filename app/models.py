@@ -13,7 +13,7 @@ class RegistroGeral(models.Model):
     tipo_sala = models.CharField(max_length=10, choices=TIPO_SALA_CHOICES)
     observacao = models.CharField(max_length=250, null=True, blank=True)
     temperatura = models.DecimalField(max_digits=5, decimal_places=2)
-    data_criacao = models.DateField(auto_now_add=True)
+    data_criacao = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
@@ -64,14 +64,12 @@ class SalaBase(models.Model):
         super().save(*args, **kwargs)
 
         if self.TIPO_SALA:
-            RegistroGeral.objects.update_or_create(
+            RegistroGeral.objects.create(
                 tipo_sala=self.TIPO_SALA,
                 data_criacao=self.created_at.date(),
-                defaults={
-                    'observacao': self.observation,
-                    'temperatura': self.temperature,
-                    'user': user,
-                }
+                observacao= self.observation,
+                temperatura= self.temperature,
+                user=user,
             )
 
 
