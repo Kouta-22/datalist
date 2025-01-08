@@ -120,7 +120,7 @@ def registrar_sala(request, tipo_sala):
 def deletar_registro(request, registro_id):
     registro = get_object_or_404(RegistroGeral, id=registro_id)
     try:
-        registro.delete()
+        registro.delete()  # Exclui diretamente; o sinal post_delete fará o resto.
         messages.success(request, "Registro excluído com sucesso!")
     except Exception as e:
         messages.error(request, f"Erro ao excluir o registro: {e}")

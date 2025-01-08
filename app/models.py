@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-
 # Modelo para RegistroGeral
 class RegistroGeral(models.Model):
     TIPO_SALA_CHOICES = [
@@ -15,23 +14,10 @@ class RegistroGeral(models.Model):
     temperatura = models.DecimalField(max_digits=5, decimal_places=2)
     data_criacao = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    sala_id = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.tipo_sala} - {self.data_criacao.strftime('%d/%m/%Y')}"
-
-    def delete(self, *args, **kwargs):
-        """
-        Override do método delete para sincronizar exclusão com as tabelas de salas.
-        """
-        if self.tipo_sala == 'ANTISALA':
-            AntiSala.objects.filter(created_at__date=self.data_criacao).delete()
-        elif self.tipo_sala == 'COFRE':
-            SalaCofre.objects.filter(created_at__date=self.data_criacao).delete()
-        elif self.tipo_sala == 'TELECOM':
-            SalaTelecom.objects.filter(created_at__date=self.data_criacao).delete()
-        elif self.tipo_sala == 'ENERGIA':
-            SalaEnergia.objects.filter(created_at__date=self.data_criacao).delete()
-        super().delete(*args, **kwargs)
 
 
 # Classe Base para salas
@@ -56,6 +42,7 @@ class SalaBase(models.Model):
     class Meta:
         abstract = True
 
+ 
     def save(self, *args, **kwargs):
         """
         Override do método save para criar ou atualizar os registros na tabela mestre RegistroGeral.
@@ -64,12 +51,15 @@ class SalaBase(models.Model):
         super().save(*args, **kwargs)
 
         if self.TIPO_SALA:
-            RegistroGeral.objects.create(
-                tipo_sala=self.TIPO_SALA,
-                data_criacao=self.created_at.date(),
-                observacao= self.observation,
-                temperatura= self.temperature,
-                user=user,
+            RegistroGeral.objects.update_or_create(
+                sala_id=self.id,  # Usando o ID único da sala como referência
+                defaults={
+                    'tipo_sala': self.TIPO_SALA,
+                    'observacao': self.observation,
+                    'temperatura': self.temperature,
+                    'data_criacao': self.created_at,
+                    'user': user,
+                }
             )
 
 
